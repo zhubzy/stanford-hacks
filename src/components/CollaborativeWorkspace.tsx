@@ -1,17 +1,21 @@
+import React, { useRef } from 'react';
 import { useCollaboration, User } from '@/hooks/useCollaboration';
-import { useRef } from 'react';
 
 interface LiveCursorProps {
   user: User;
 }
 
-function LiveCursor({ user }: LiveCursorProps) {
-  if (!user.cursor || user.id === 'current-user') return null;
+interface LiveCursorPropsWithWorkspace extends LiveCursorProps {
+  workspaceRef: React.RefObject<HTMLDivElement>;
+}
+
+function LiveCursor({ user, workspaceRef }: LiveCursorPropsWithWorkspace) {
+  if (!user.cursor || user.id === 'current-user' || !workspaceRef.current) return null;
 
   return (
     // eslint-disable-next-line react/forbid-dom-props
     <div
-      className="pointer-events-none fixed z-50 transition-all duration-150 ease-out"
+      className="pointer-events-none absolute z-50 transition-all duration-150 ease-out"
       style={{
         left: `${user.cursor.x}px`,
         top: `${user.cursor.y}px`,
@@ -91,16 +95,15 @@ export function CollaborativeWorkspace() {
         <PresenceIndicator users={users} />
       </div>
 
-      {/* Live Cursors */}
-      {users.map((user) => (
-        <LiveCursor key={user.id} user={user} />
-      ))}
-
       {/* Collaborative Workspace */}
       <div
         ref={workspaceRef}
         className="relative h-full w-full overflow-hidden rounded-lg border-2 border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 p-6"
       >
+        {/* Live Cursors - positioned relative to workspace */}
+        {users.map((user) => (
+          <LiveCursor key={user.id} user={user} workspaceRef={workspaceRef} />
+        ))}
         <div className="mb-4">
           <h2 className="text-2xl font-bold text-gray-800">
             Collaborative Workspace
